@@ -100,14 +100,14 @@ int main(int argc,char **args)
     //Calculate elasped time
     local_diff = 1000000000L*(end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);\
     MPI_Reduce(&local_diff, &global_diff, 1, MPI_LONG_LONG_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-    PetscPrintf(MPI_COMM_WORLD,"Elapsed time of solver = % lf nanoseconds\n", (double)(global_diff)/size);
+    PetscPrintf(MPI_COMM_WORLD,"Elapsed time of solver = % lf seconds\n", (double)(global_diff)/size/1000000000L);
     
     //Check error
     ierr = VecAXPY(x,-1.0,u);CHKERRQ(ierr);
     ierr = VecNorm(x,NORM_2,&norm);CHKERRQ(ierr);
     ierr = VecNorm(u,NORM_2,&normu);CHKERRQ(ierr);
     ierr = KSPGetIterationNumber(ksp,&its);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Relative norm of error = %lf\n",norm/normu);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Relative norm of error = %.2g\n",norm/normu);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Number of iterations = %d\n",its);CHKERRQ(ierr);
     
     //Finalize
