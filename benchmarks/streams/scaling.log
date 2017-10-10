@@ -1,0 +1,28 @@
+Number of MPI processes 1 Processor names  eduroam062-080.wl.anl-external.org 
+Triad:        10120.4741   Rate (MB/s) 
+Number of MPI processes 2 Processor names  eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org 
+Triad:        16085.5595   Rate (MB/s) 
+Number of MPI processes 3 Processor names  eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org 
+Triad:        16334.5205   Rate (MB/s) 
+Number of MPI processes 4 Processor names  eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org 
+Triad:        16319.5877   Rate (MB/s) 
+Number of MPI processes 5 Processor names  eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org 
+Triad:        16264.3474   Rate (MB/s) 
+Number of MPI processes 6 Processor names  eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org 
+Triad:        16167.1314   Rate (MB/s) 
+Number of MPI processes 7 Processor names  eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org 
+Triad:        16081.2912   Rate (MB/s) 
+Number of MPI processes 8 Processor names  eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org eduroam062-080.wl.anl-external.org 
+Triad:        16024.4840   Rate (MB/s) 
+np  speedup
+1 1.0
+2 1.59
+3 1.61
+4 1.61
+5 1.61
+6 1.6
+7 1.59
+8 1.58
+Estimation of possible speedup of MPI programs based on Streams benchmark.
+It appears you have 1 node(s)
+See graph in the file src/benchmarks/streams/scaling.png

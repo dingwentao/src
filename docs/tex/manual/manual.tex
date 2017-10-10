@@ -1,0 +1,147 @@
+%
+% Latex file for the PETSc Users Manual
+%
+\input{manualpreamble.tex}
+hyperbaseurl
+
+\makeindex
+
+% Defines the environment where design issues are discussed. In the manual
+% version of this report, these regions are ignored.
+\def\design{\medskip \noindent Design Issue:\begin{em}}
+\def\enddesign{\end{em} \medskip}
+% Manual version:
+% \def\design{\comment}
+% \def\enddesign{\endcomment}
+
+% Print DRAFT in large letters across every page
+%\special{!userdict begin /bop-hook{gsave 200 70 translate
+%65 rotate /Times-Roman findfont 216 scalefont setfont
+%0 0 moveto 0.95 setgray (DRAFT) show grestore}def end}
+
+% Defines that we're doing the whole manual, not the short intro part,
+% used in part1.tex.
+\def\shortintro{false}
+
+\usepackage{fancyhdr,lastpage}
+\pagestyle{fancy}
+\rhead{PETSc 3.8 \today}
+
+\begin{document}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagestyle{empty}
+\hspace{-.65in}\includegraphics{ArgonneLogo}
+\hfill  {\large {\bf ANL-95/11 Rev 3.8}}
+
+\vspace*{3in}
+\noindent {\huge{\bf PETSc Users Manual}}
+\vspace*{8pt}
+\hrule
+\vspace*{8pt}
+\noindent {\Large{\it Revision 3.8}}
+
+\vspace*{1in}
+\noindent \\
+{\Large {\bf Mathematics and Computer Science Division}}
+
+\vspace*{10pt}
+
+
+\vspace*{20pt}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\centerline{\includegraphics{ArgonneReportTemplatePage2}}
+\newpage
+
+\hfill {\large {\bf ANL-95/11 Rev 3.8}}
+
+\vspace*{3in}
+\noindent {\LARGE{\bf PETSc Users Manual}}
+\vspace*{8pt}
+\hrule
+\vspace*{8pt}
+\noindent {\Large{\it Revision 3.8}}
+
+\vspace*{1in}
+\noindent Prepared by \\
+{\bf S. Balay, S. Abhyankar, M. Adams, J. Brown, P. Brune, K. Buschelman, L. Dalcin, V. Eijkhout, W. Gropp, D. Karpeyev,
+D. Kaushik, M. Knepley, D. May, L. Curfman McInnes, T. Munson, K. Rupp, P. Sanan, B. Smith, S. Zampini, H. Zhang, and H. Zhang}\\
+Mathematics and Computer Science Division, Argonne National Laboratory
+
+\vspace*{30pt}
+\noindent September 2017
+
+\vspace*{20pt}
+\noindent This work was supported by the Office of Advanced Scientific Computing Research, \\
+Office of Science, U.S. Department of Energy, under Contract DE-AC02-06CH11357.
+
+
+\cleardoublepage
+%\pagestyle{plain}
+\pagestyle{fancy}
+\vspace{1in}
+\date{\today}
+
+% Abstract for users manual
+\addcontentsline{toc}{chapter}{Abstract}
+\input{abstract.tex}
+
+\cleardoublepage
+
+\input{gettinginfo.tex}
+
+\medskip \medskip
+
+\cleardoublepage
+
+% Acknowledgements for users manual
+\input{acknowltmp.tex}
+
+% Blank page makes double sided printout look bettter.
+
+\cleardoublepage
+\label{tableofcontents}
+\tableofcontents
+
+% --------------------------------------------------------------------
+%                            PART 1
+% --------------------------------------------------------------------
+\cleardoublepage
+\part{Introduction to PETSc}
+\label{part_intro}
+\cleardoublepage
+\chapter{Getting Started}
+\input{part1tmp.tex}
+
+% --------------------------------------------------------------------
+%                            PART 2
+% --------------------------------------------------------------------
+\cleardoublepage
+\part{Programming with PETSc}
+\label{part_usage}
+\input{part2tmp.tex}
+
+
+%------------------------------------------------------------------
+
+
+\cleardoublepage
+\bibliographystyle{plain}
+\addtocounter{chapter}{1}
+\addcontentsline{toc}{chapter}{Bibliography}
+\label{sec:bib}
+\bibliography{../petsc,../petscapp}
+
+\pagestyle{empty}
+\begin{figure*}[hbt]
+\centerline{\includegraphics{ArgonneReportTemplateLastPage.pdf}}
+\caption{}
+\end{figure*}
+
+\end{document}
