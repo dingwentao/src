@@ -4,7 +4,7 @@ CPPFLAGS         =
 FPPFLAGS         =
 LOCDIR           = src/ksp/ksp/examples/tutorials/
 DIRS             = network
-EXAMPLESC        = solver.c ex1.c ex2.c ex3.c ex4.c ex5.c ex6.c ex7.c ex8.c ex9.c \
+EXAMPLESC        = solver.c solver_poisson.c ex1.c ex2.c ex3.c ex4.c ex5.c ex6.c ex7.c ex8.c ex9.c \
                 ex10.c ex11.c ex12.c ex13.c ex15.c ex16.c ex18.c ex23.c \
                 ex25.c ex27.c ex28.c ex29.c ex30.c ex31.c ex32.c ex34.c \
                 ex41.c ex42.c ex43.c \
@@ -23,6 +23,10 @@ solver: solver.o chkopts
 	-${CLINKER} -o solver solver.o  ${PETSC_KSP_LIB}
 	${RM} solver.o
 	
+solver_poisson: solver_poisson.o chkopts
+	-${CLINKER} -o solver_poisson solver_poisson.o  ${PETSC_KSP_LIB}
+	${RM} solver_poisson.o
+
 ex1: ex1.o  chkopts
 	-${CLINKER} -o ex1 ex1.o  ${PETSC_KSP_LIB}
 	${RM} ex1.o
