@@ -32,14 +32,16 @@ int main(int argc,char **args)
     KSP            ksp;     /* linear solver context */
     PetscRandom    rctx;     /* random number generator context */
     PetscReal      norm;     /* norm of solution error */
-    PetscInt       its;
     PetscErrorCode ierr;
     PetscBool      flg = PETSC_FALSE;
-    char           filename[PETSC_MAX_PATH_LEN];     /* input file name */
-    PetscViewer    view;
-    PetscInt         N;
     PetscMPIInt    rank,size;
-    PetscReal         normu;
+    PetscReal      normu;
+    PetscInt       i1,i2,j1,j2,Ii,J,Istart,Iend,n = 7, its;
+    PetscScalar    v;
+#if defined(PETSC_USE_LOG)
+    PetscLogStage stage;
+#endif
+
     struct timespec start, end;
     long long int local_diff, global_diff;
     
@@ -48,21 +50,51 @@ int main(int argc,char **args)
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD,&size);
     
-    ierr = PetscOptionsGetString(NULL,NULL,"-f",filename,sizeof(filename),&flg);CHKERRQ(ierr);
-    if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must indicate binary file with the -f option");
-    
-    PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&view);
+    ierr = PetscInitialize(&argc,&args,(char*)0,help);if (ierr) return ierr;
+    ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+
+    //Create parallel matrix
     ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-    ierr = MatSetType(A,MATSBAIJ);CHKERRQ(ierr); //MATSBAIJ = "sbaij" - A matrix type to be used for symmetric block sparse matrices.
-    
-    //Set Matrix
-    ierr = MatLoad(A,view);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&view);CHKERRQ(ierr);
-    ierr = MatGetSize(A,&N,NULL);CHKERRQ(ierr);
+    ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n*n*n,n*n*n);CHKERRQ(ierr);
+    ierr = MatSetFromOptions(A);CHKERRQ(ierr);
+    ierr = MatMPIAIJSetPreallocation(A,7,NULL,7,NULL);CHKERRQ(ierr);
+    ierr = MatSeqAIJSetPreallocation(A,7,NULL);CHKERRQ(ierr);
+    ierr = MatSeqSBAIJSetPreallocation(A,1,7,NULL);CHKERRQ(ierr);
+    ierr = MatMPISBAIJSetPreallocation(A,1,7,NULL,7,NULL);CHKERRQ(ierr);
+
+    //Determine which rows of the matrix are locally owned
+    ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+
+    //Set 3D poisson matrix elements
+    ierr = PetscLogStageRegister("Assembly", &stage);CHKERRQ(ierr);
+    ierr = PetscLogStagePush(stage);CHKERRQ(ierr);
+    for (Ii=Istart; Ii<Iend; Ii++)
+    {
+    	v = -1.0;
+    	i1 = Ii/(n*n); j1 = Ii - i1*(n*n);
+        if (i1>0)   {J = Ii - n*n; ierr = MatSetValues(A,1,&Ii,1,&J,&v,ADD_VALUES);CHKERRQ(ierr);}
+        if (i1<n-1) {J = Ii + n*n; ierr = MatSetValues(A,1,&Ii,1,&J,&v,ADD_VALUES);CHKERRQ(ierr);}
+        i2 = j1/n; j2 = j1 - i2*n;
+        if (i2>0)   {J = Ii - n; ierr = MatSetValues(A,1,&Ii,1,&J,&v,ADD_VALUES);CHKERRQ(ierr);}
+        if (i2<n-1) {J = Ii + n; ierr = MatSetValues(A,1,&Ii,1,&J,&v,ADD_VALUES);CHKERRQ(ierr);}
+        if (j2>0)   {J = Ii - 1; ierr = MatSetValues(A,1,&Ii,1,&J,&v,ADD_VALUES);CHKERRQ(ierr);}
+        if (j2<n-1) {J = Ii + 1; ierr = MatSetValues(A,1,&Ii,1,&J,&v,ADD_VALUES);CHKERRQ(ierr);}
+        v = 6.0; ierr = MatSetValues(A,1,&Ii,1,&Ii,&v,ADD_VALUES);CHKERRQ(ierr);
+    }
+
+    //Assemble matrix
+    ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = PetscLogStagePop();CHKERRQ(ierr);
+
+    // Set symmetric flag to enable ICC/Cholesky preconditioner
+    ierr = MatSetOption(A,MAT_SYMMETRIC,PETSC_TRUE);CHKERRQ(ierr);
+
+    //MatView(A,PETSC_VIEWER_STDOUT_WORLD);
     
     //Create vector u
     ierr = VecCreate(PETSC_COMM_WORLD,&u);CHKERRQ(ierr);
-    ierr = VecSetSizes(u,PETSC_DECIDE,N);CHKERRQ(ierr);
+    ierr = VecSetSizes(u,PETSC_DECIDE,n*n*n);CHKERRQ(ierr);
     ierr = VecSetFromOptions(u);CHKERRQ(ierr);
     
     //Create RHS vector b
@@ -90,7 +122,7 @@ int main(int argc,char **args)
     ierr = KSPSetOperators(ksp,A,A);CHKERRQ(ierr);
     
     //Set convergence paramters
-    ierr = KSPSetTolerances(ksp,1.e-2/(N*N),1.e-50,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+    ierr = KSPSetTolerances(ksp,1.e-6,1.e-50,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
     
     //Start counting time
