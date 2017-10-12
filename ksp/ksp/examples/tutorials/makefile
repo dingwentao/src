@@ -2,6 +2,7 @@ CFLAGS	         =
 FFLAGS	         =
 CPPFLAGS         =
 FPPFLAGS         =
+FTILIB			 = /Users/Devin/Documents/fti-with-sz/build/lib/libfti.a
 LOCDIR           = src/ksp/ksp/examples/tutorials/
 DIRS             = network
 EXAMPLESC        = ksp_solver.c ksp_poisson.c jacobi_poisson.c ex1.c ex2.c ex3.c ex4.c ex5.c ex6.c ex7.c ex8.c ex9.c \
@@ -20,15 +21,15 @@ include ${PETSC_DIR}/lib/petsc/conf/variables
 include ${PETSC_DIR}/lib/petsc/conf/rules
 
 ksp_solver: ksp_solver.o chkopts
-	-${CLINKER} -o ksp_solver ksp_solver.o  ${PETSC_KSP_LIB}
+	-${CLINKER} -o ksp_solver ksp_solver.o  ${PETSC_KSP_LIB} ${FTILIB}
 	${RM} ksp_solver.o
 	
 ksp_poisson: ksp_poisson.o chkopts
-	-${CLINKER} -o ksp_poisson ksp_poisson.o  ${PETSC_KSP_LIB}
+	-${CLINKER} -o ksp_poisson ksp_poisson.o  ${PETSC_KSP_LIB} ${FTILIB}
 	${RM} ksp_poisson.o
 
 jacobi_poisson: jacobi_poisson.o chkopts
-	-${CLINKER} -o jacobi_poisson jacobi_poisson.o  ${PETSC_KSP_LIB}
+	-${CLINKER} -o jacobi_poisson jacobi_poisson.o  ${PETSC_KSP_LIB} ${FTILIB}
 	${RM} jacobi_poisson.o
 
 ex1: ex1.o  chkopts
