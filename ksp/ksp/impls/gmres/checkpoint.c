@@ -364,12 +364,9 @@ int FTI_WritePosix(FTIT_configuration* FTI_Conf, FTIT_execution* FTI_Exec,
       clearerr(fd);
       size_t written = 0;
       int fwrite_errno;
-      
-//      printf("myrank=%d, FTI_Data[%d].size=%d\n", FTI_Topo->myRank, i, FTI_Data[i].size);
-      
+
       if(FTI_Data[i].ptr != FTI_Data[i].ptr2)
       {
-//		  	 printf("myrank=%d, 1.1------------, FTI_Data[i].size=%d\n", FTI_Topo->myRank, FTI_Data[i].size);
 			 fwrite((&FTI_Data[i].size), 8, 1, fd);		
 			 while (written < FTI_Data[i].size && !ferror(fd)) {
 			 errno = 0;
@@ -379,11 +376,6 @@ int FTI_WritePosix(FTIT_configuration* FTI_Conf, FTIT_execution* FTI_Exec,
 	  }
 	  else
 	  {
-		  	 if (i == 0)
-		  		 printf("myrank=%d, (FTI_Data[%d].ptr)[0] = %d\n", FTI_Topo->myRank, i,((int*)FTI_Data[i].ptr)[0]);
-		  	 else
-		  		 printf("myrank=%d, (FTI_Data[%d].ptr)[0] = %lf\n", FTI_Topo->myRank, i,((double*)FTI_Data[i].ptr)[0]);
-
 			 while (written < FTI_Data[i].count && !ferror(fd)) {
 			 errno = 0;
 			 written += fwrite(((char*)FTI_Data[i].ptr) + (FTI_Data[i].eleSize*written), FTI_Data[i].eleSize, FTI_Data[i].count - written, fd);
