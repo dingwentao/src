@@ -729,6 +729,7 @@ PetscErrorCode  KSPConvergedDefault(KSP ksp,PetscInt n,PetscReal rnorm,KSPConver
         ierr  = PetscInfo(ksp,"Special case, user has provided nonzero initial guess and zero RHS\n");CHKERRQ(ierr);
         snorm = rnorm;
       }
+      printf ("cctx->mininitialrtol = %d\n", cctx->mininitialrtol);
       if (cctx->mininitialrtol) ksp->rnorm0 = PetscMin(snorm,rnorm);
       else ksp->rnorm0 = snorm;
     } else {
