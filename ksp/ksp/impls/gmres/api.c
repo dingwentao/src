@@ -475,14 +475,14 @@ int FTI_Checkpoint(int id, int level)
 		FTI_Exec.ckptSize = 0;
 		for(i=0; i<FTI_Exec.nbVar; i++)
 		{
-			if(FTI_Data[i].type.id == FTI_SFLT.id)
+			if((FTI_Data[i].type.id == FTI_SFLT.id) && (FTI_Data[i].count > 1))
 			{
 				bytes = SZ_compress(SZ_FLOAT, (float*)(FTI_Data[i].ptr), &outSize, 0, 0, 0, 0, FTI_Data[i].count);
 				FTI_Data[i].size = outSize;
 				FTI_Data[i].ptr2 = bytes;
 				FTI_Exec.ckptSize += (8+FTI_Data[i].size);				
 			}	
-			else if(FTI_Data[i].type.id == FTI_DBLE.id)
+			else if((FTI_Data[i].type.id == FTI_DBLE.id) && (FTI_Data[i].count > 1))
 			{
 //				printf("myRank=%d, (double*)(FTI_Data[%d].ptr)[0]=%lf\n", FTI_Topo.myRank, i, ((double*)(FTI_Data[i].ptr))[0]);
 
@@ -500,21 +500,13 @@ int FTI_Checkpoint(int id, int level)
 		FTI_Exec.ckptSize = 0;
 		for(i=0; i<FTI_Exec.nbVar; i++)
 		{
-			if(FTI_Data[i].type.id == FTI_SFLT.id)
+			if(((FTI_Data[i].type.id == FTI_SFLT.id) || (FTI_Data[i].type.id == FTI_DBLE.id)) && (FTI_Data[i].count > 1))
 			{
 				outSize = zlib_compress((unsigned char*)(FTI_Data[i].ptr), FTI_Data[i].size, &bytes, gzipMode);
 				FTI_Data[i].size = outSize;
 				FTI_Data[i].ptr2 = bytes;
 				FTI_Exec.ckptSize += (8+FTI_Data[i].size);								
 				//printf("FTI_Data[%d].size=%d\n", i, outSize);		
-			}
-			else if(FTI_Data[i].type.id == FTI_DBLE.id)
-			{
-				outSize = zlib_compress((unsigned char*)(FTI_Data[i].ptr), FTI_Data[i].size, &bytes, gzipMode);
-				FTI_Data[i].size = outSize;
-				FTI_Data[i].ptr2 = bytes;
-				FTI_Exec.ckptSize += (8+FTI_Data[i].size);								
-				//printf("FTI_Data[%d].size=%d\n", i, outSize);
 			}
 			else
 				FTI_Exec.ckptSize += FTI_Data[i].size;							
@@ -614,21 +606,21 @@ int FTI_Recover()
     for (i = 0; i < FTI_Exec.nbVar; i++) {
 		if(compressorName==SZ_COMPRESSOR)
 		{	
-			if(FTI_Data[i].type.id == FTI_DBLE.id)
+			if((FTI_Data[i].type.id == FTI_DBLE.id) && (FTI_Data[i].count > 1))
 			{
 				fread(&cmpSize, 8, 1, fd);
 				FTI_Data[i].ptr2 = (unsigned char*)malloc(cmpSize);
 				fread(FTI_Data[i].ptr2, 1, cmpSize, fd);
-				FTI_Data[i].ptr = SZ_decompress(SZ_DOUBLE, FTI_Data[i].ptr2, cmpSize, 0, 0, 0, 0, FTI_Data[i].count);
+				SZ_decompress_args(SZ_DOUBLE, FTI_Data[i].ptr2, cmpSize, FTI_Data[i].ptr, 0, 0, 0, 0, FTI_Data[i].count);
 //				printf("FTI_Data[%d].ptr[0]=%lf, cmpSize=%ld\n", i, ((double*)FTI_Data[i].ptr)[0], cmpSize);
 				free(FTI_Data[i].ptr2);
 			}
-			else if(FTI_Data[i].type.id == FTI_SFLT.id)
+			else if((FTI_Data[i].type.id == FTI_SFLT.id) && (FTI_Data[i].count > 1))
 			{
 				fread(&cmpSize, 8, 1, fd);				
 				FTI_Data[i].ptr2 = (unsigned char*)malloc(cmpSize);
 				fread(FTI_Data[i].ptr2, 1, cmpSize, fd);
-				FTI_Data[i].ptr = SZ_decompress(SZ_FLOAT, FTI_Data[i].ptr2, cmpSize, 0, 0, 0, 0, FTI_Data[i].count);
+				SZ_decompress_args(SZ_FLOAT, FTI_Data[i].ptr2, cmpSize, FTI_Data[i].ptr, 0, 0, 0, 0, FTI_Data[i].count);
 				free(FTI_Data[i].ptr2);
 			}
 			else
@@ -640,7 +632,23 @@ int FTI_Recover()
         }     
         else if(compressorName==ZLIB_COMPRESSOR)
         {
-			//TODO
+
+        	if (((FTI_Data[i].type.id == FTI_SFLT.id) || (FTI_Data[i].type.id == FTI_DBLE.id)) && (FTI_Data[i].count > 1))
+        		{
+    				fread(&cmpSize, 8, 1, fd);
+    				FTI_Data[i].ptr2 = (unsigned char*)malloc(cmpSize);
+    				fread(FTI_Data[i].ptr2, 1, cmpSize, fd);
+    				unsigned char *tmpPtr;
+    				zlib_uncompress5(FTI_Data[i].ptr2, cmpSize, &tmpPtr, FTI_Data[i].count*FTI_Data[i].eleSize);
+    				memcpy(FTI_Data[i].ptr, tmpPtr, FTI_Data[i].count*FTI_Data[i].eleSize);
+					free(tmpPtr);
+    				free(FTI_Data[i].ptr2);
+    			}
+    		    else
+    			{
+    				fread(FTI_Data[i].ptr, FTI_Data[i].eleSize, FTI_Data[i].count, fd);
+    			}
+
 		}
 		else
 		{
