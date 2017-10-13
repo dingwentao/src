@@ -44,7 +44,7 @@ int main(int argc,char **args)
 #endif
 
     struct timespec start, end;
-    long long int local_diff, global_diff;
+    long long int diff;
 
     PetscInitialize(&argc,&args,(char*)0,help);
    
@@ -53,6 +53,10 @@ int main(int argc,char **args)
     
     ierr = PetscInitialize(&argc,&args,(char*)0,help);if (ierr) return ierr;
     ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+
+    //Start counting initialize parallel matrix time
+    MPI_Barrier(MPI_COMM_WORLD);
+    clock_gettime(CLOCK_REALTIME, &start);
 
     //Create parallel matrix
     ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
@@ -87,6 +91,14 @@ int main(int argc,char **args)
     ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = PetscLogStagePop();CHKERRQ(ierr);
+
+    //End counting time
+    MPI_Barrier(MPI_COMM_WORLD);
+    clock_gettime(CLOCK_REALTIME, &end);
+
+    //Calculate elasped time
+    diff = 1000000000L*(end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
+    PetscPrintf(MPI_COMM_WORLD,"[ Petsc ] : Elapsed time of assembling parallel matrix = %.2lf seconds\n", (double)(diff)/size/1000000000L);
 
     // Set symmetric flag to enable ICC/Cholesky preconditioner
     ierr = MatSetOption(A,MAT_SYMMETRIC,PETSC_TRUE);CHKERRQ(ierr);
@@ -123,22 +135,28 @@ int main(int argc,char **args)
     ierr = KSPSetOperators(ksp,A,A);CHKERRQ(ierr);
 
     //Set convergence paramters
-    ierr = KSPSetTolerances(ksp,1.e-4,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+    ierr = KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr); //rol = 1e-5
     ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
+    PetscReal rtol;
+    PetscReal abstol;
+    PetscReal dtol;
+    PetscInt maxits;
+    ierr = KSPGetTolerances(ksp,&rtol,&abstol,&dtol,&maxits);
     
     //Start counting time
+    MPI_Barrier(MPI_COMM_WORLD);
     clock_gettime(CLOCK_REALTIME, &start);
     
 	//Perform solver
     ierr = KSPSolve(ksp,b,x);CHKERRQ(ierr);
     
     //End counting time
+    MPI_Barrier(MPI_COMM_WORLD);
     clock_gettime(CLOCK_REALTIME, &end);
     
     //Calculate elasped time
-    local_diff = 1000000000L*(end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
-    MPI_Reduce(&local_diff, &global_diff, 1, MPI_LONG_LONG_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-    PetscPrintf(MPI_COMM_WORLD,"Elapsed time of solver = % lf seconds\n", (double)(global_diff)/size/1000000000L);
+    diff = 1000000000L*(end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
+    PetscPrintf(MPI_COMM_WORLD,"[ Petsc ] : Elapsed time of solver = %.2lf seconds\n", (double)(diff)/size/1000000000L);
     
     //Check error
     ierr = VecAXPY(x,-1.0,u);CHKERRQ(ierr);
