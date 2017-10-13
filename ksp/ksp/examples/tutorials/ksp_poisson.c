@@ -21,6 +21,9 @@ Input parameters include:\n\
 #include <time.h>
 #include <petscksp.h>
 
+char *FTIConFile;
+char *SZConFile;
+
 #undef __FUNCT__
 #define __FUNCT__ "main"
 int main(int argc,char **args)
@@ -42,10 +45,10 @@ int main(int argc,char **args)
 
     struct timespec start, end;
     long long int local_diff, global_diff;
-    
+
     PetscInitialize(&argc,&args,(char*)0,help);
-    
-    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+   
+	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD,&size);
     
     ierr = PetscInitialize(&argc,&args,(char*)0,help);if (ierr) return ierr;
@@ -100,8 +103,8 @@ int main(int argc,char **args)
     
     //Create initial guess vector x
     ierr = VecDuplicate(b,&x);CHKERRQ(ierr);
-    
-    //Initialize vector u
+    	
+	//Initialize vector u
     ierr = PetscOptionsGetBool(NULL,NULL,"-random_exact_sol",&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
@@ -118,15 +121,15 @@ int main(int argc,char **args)
     //Set solver and preconditioner
     ierr = KSPCreate(PETSC_COMM_WORLD,&ksp);CHKERRQ(ierr);
     ierr = KSPSetOperators(ksp,A,A);CHKERRQ(ierr);
-    
+
     //Set convergence paramters
-    ierr = KSPSetTolerances(ksp,1.e-6,1.e-50,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+    ierr = KSPSetTolerances(ksp,1.e-4,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
     
     //Start counting time
     clock_gettime(CLOCK_REALTIME, &start);
     
-    //Perform solver
+	//Perform solver
     ierr = KSPSolve(ksp,b,x);CHKERRQ(ierr);
     
     //End counting time
